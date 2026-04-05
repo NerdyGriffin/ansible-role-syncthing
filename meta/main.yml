@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: nerdygriffin
+  description: Install and configure Syncthing with automated device pairing
+  license: MIT
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+    - name: EL
+      versions:
+        - "8"
+        - "9"
+  galaxy_tags:
+    - syncthing
+    - sync
+    - replication
+
+dependencies: []

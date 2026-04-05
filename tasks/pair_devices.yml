@@ -1,0 +1,48 @@
+---
+# Two-pass device pairing across all hosts in the play
+
+# Pass 1: Collect this host's device ID
+- name: Get local Syncthing device ID
+  ansible.builtin.command:
+    cmd: syncthing cli show system
+  become: true
+  become_user: "{{ syncthing_user }}"
+  register: syncthing_system_info
+  changed_when: false
+
+- name: Parse device ID from system info
+  ansible.builtin.set_fact:
+    syncthing_device_id: "{{ (syncthing_system_info.stdout | from_json).myID }}"
+
+# Pass 2: Register all peer devices
+- name: Add peer devices
+  ansible.builtin.command:
+    cmd: >
+      syncthing cli config devices add
+      --device-id {{ hostvars[item].syncthing_device_id }}
+      --name {{ item }}
+  become: true
+  become_user: "{{ syncthing_user }}"
+  loop: "{{ ansible_play_hosts_all | difference([inventory_hostname]) }}"
+  when: hostvars[item].syncthing_device_id is defined
+  register: syncthing_device_result
+  changed_when: syncthing_device_result.rc == 0
+  failed_when:
+    - syncthing_device_result.rc != 0
+    - "'already exists' not in syncthing_device_result.stderr"
+
+- name: Share folders with peer devices
+  ansible.builtin.command:
+    cmd: >
+      syncthing cli config folders {{ item.0.id }} devices add
+      --device-id {{ hostvars[item.1].syncthing_device_id }}
+  become: true
+  become_user: "{{ syncthing_user }}"
+  loop: "{{ syncthing_folders | product(ansible_play_hosts_all | difference([inventory_hostname])) | list }}"
+  when: hostvars[item.1].syncthing_device_id is defined
+  register: syncthing_share_result
+  changed_when: syncthing_share_result.rc == 0
+  failed_when:
+    - syncthing_share_result.rc != 0
+    - "'already exists' not in syncthing_share_result.stderr"
+  notify: Restart syncthing

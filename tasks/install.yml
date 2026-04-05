@@ -1,0 +1,50 @@
+---
+# Install Syncthing from official upstream repo
+
+- name: Add Syncthing apt signing key
+  ansible.builtin.apt_key:
+    url: https://syncthing.net/release-key.gpg
+    state: present
+  when:
+    - syncthing_install_repo
+    - ansible_os_family == 'Debian'
+
+- name: Add Syncthing apt repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://apt.syncthing.net/ syncthing stable"
+    state: present
+    filename: syncthing
+  when:
+    - syncthing_install_repo
+    - ansible_os_family == 'Debian'
+
+- name: Add Syncthing dnf repository
+  ansible.builtin.yum_repository:
+    name: syncthing
+    description: Syncthing stable
+    baseurl: https://yum.syncthing.net/rpm/stable/$basearch
+    gpgcheck: true
+    gpgkey: https://syncthing.net/release-key.gpg
+    enabled: true
+  when:
+    - syncthing_install_repo
+    - ansible_os_family == 'RedHat'
+
+- name: Install syncthing package
+  ansible.builtin.package:
+    name: syncthing
+    state: present
+
+- name: Enable and start syncthing service for user
+  ansible.builtin.systemd:
+    name: "syncthing@{{ syncthing_user }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Wait for Syncthing to generate initial config
+  ansible.builtin.wait_for:
+    path: "/home/{{ syncthing_user }}/.local/state/syncthing/config.xml"
+    timeout: 30
+  become: true
+  become_user: "{{ syncthing_user }}"

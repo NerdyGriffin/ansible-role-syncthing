@@ -1,0 +1,11 @@
+---
+# nerdygriffin.syncthing — main task entry point
+
+- name: Include install tasks
+  ansible.builtin.include_tasks: install.yml
+
+- name: Include configuration tasks
+  ansible.builtin.include_tasks: configure.yml
+
+- name: Include device pairing tasks
+  ansible.builtin.include_tasks: pair_devices.yml

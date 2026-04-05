@@ -1,0 +1,28 @@
+---
+# nerdygriffin.syncthing — role defaults
+# All variables use flat role-prefixed names per Galaxy convention.
+
+# User account to run Syncthing as
+syncthing_user: setup
+
+# Whether to add the official Syncthing apt/dnf repo (recommended over distro packages)
+syncthing_install_repo: true
+
+# Shared folders — list of dicts with keys: id, path
+# Example:
+#   syncthing_folders:
+#     - id: ansible
+#       path: /ansible
+syncthing_folders: []
+
+# API key for the Syncthing REST API (set via vault in production)
+syncthing_api_key: ""
+
+# Whether to enable the Syncthing web GUI
+syncthing_gui_enabled: false
+
+# Address for the Syncthing API/GUI listener
+syncthing_api_address: "127.0.0.1:8384"
+
+# Syncthing listen address for device-to-device sync
+syncthing_listen_address: "default"

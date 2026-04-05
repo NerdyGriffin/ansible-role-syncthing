@@ -1,0 +1,49 @@
+---
+# Configure Syncthing daemon settings via CLI
+
+- name: Set GUI enabled/disabled
+  ansible.builtin.command:
+    cmd: >
+      syncthing cli config gui raw-enabled set --
+      {{ syncthing_gui_enabled | lower }}
+  become: true
+  become_user: "{{ syncthing_user }}"
+  changed_when: true
+  notify: Restart syncthing
+
+- name: Set GUI/API listen address
+  ansible.builtin.command:
+    cmd: >
+      syncthing cli config gui raw-address set --
+      {{ syncthing_api_address }}
+  become: true
+  become_user: "{{ syncthing_user }}"
+  changed_when: true
+  notify: Restart syncthing
+
+- name: Set API key
+  ansible.builtin.command:
+    cmd: >
+      syncthing cli config gui apikey set --
+      {{ syncthing_api_key }}
+  become: true
+  become_user: "{{ syncthing_user }}"
+  changed_when: true
+  when: syncthing_api_key | length > 0
+  no_log: true
+  notify: Restart syncthing
+
+- name: Configure shared folders
+  ansible.builtin.command:
+    cmd: >
+      syncthing cli config folders add
+      --id {{ item.id }}
+      --path {{ item.path }}
+  become: true
+  become_user: "{{ syncthing_user }}"
+  loop: "{{ syncthing_folders }}"
+  register: syncthing_folder_result
+  changed_when: syncthing_folder_result.rc == 0
+  failed_when:
+    - syncthing_folder_result.rc != 0
+    - "'already exists' not in syncthing_folder_result.stderr"
