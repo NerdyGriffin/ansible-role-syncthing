@@ -1,17 +1,28 @@
 ---
 # Install Syncthing from official upstream repo
 
-- name: Add Syncthing apt signing key
-  ansible.builtin.apt_key:
+- name: Ensure apt keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+  when:
+    - syncthing_install_repo
+    - ansible_os_family == 'Debian'
+
+- name: Download Syncthing apt signing key
+  ansible.builtin.get_url:
     url: https://syncthing.net/release-key.gpg
-    state: present
+    dest: /etc/apt/keyrings/syncthing.gpg
+    mode: "0644"
+    force: false
   when:
     - syncthing_install_repo
     - ansible_os_family == 'Debian'
 
 - name: Add Syncthing apt repository
   ansible.builtin.apt_repository:
-    repo: "deb https://apt.syncthing.net/ syncthing stable"
+    repo: "deb [signed-by=/etc/apt/keyrings/syncthing.gpg] https://apt.syncthing.net/ syncthing stable"
     state: present
     filename: syncthing
   when:
