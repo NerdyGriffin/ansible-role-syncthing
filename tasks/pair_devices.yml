@@ -7,6 +7,8 @@
     cmd: syncthing cli show system
   become: true
   become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
   register: syncthing_system_info
   changed_when: false
 
@@ -23,6 +25,8 @@
       --name {{ item }}
   become: true
   become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
   loop: "{{ ansible_play_hosts_all | difference([inventory_hostname]) }}"
   when: hostvars[item].syncthing_device_id is defined
   register: syncthing_device_result
@@ -38,6 +42,8 @@
       --device-id {{ hostvars[item.1].syncthing_device_id }}
   become: true
   become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
   loop: "{{ syncthing_folders | product(ansible_play_hosts_all | difference([inventory_hostname])) | list }}"
   when: hostvars[item.1].syncthing_device_id is defined
   register: syncthing_share_result
