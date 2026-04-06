@@ -18,8 +18,10 @@ syncthing_folders: []
 # API key for the Syncthing REST API (set via vault in production)
 syncthing_api_key: ""
 
-# Whether to enable the Syncthing web GUI
-syncthing_gui_enabled: false
+# Whether to enable the Syncthing GUI/API listener
+# NOTE: The CLI depends on the REST API, so this must be true for
+# syncthing cli commands to work. Bind to 127.0.0.1 for security.
+syncthing_gui_enabled: true
 
 # Address for the Syncthing API/GUI listener
 syncthing_api_address: "127.0.0.1:8384"
