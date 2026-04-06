@@ -17,6 +17,16 @@
     syncthing_device_id: "{{ (syncthing_system_info.stdout | from_json).myID }}"
 
 # Pass 2: Register all peer devices
+- name: Get existing device IDs
+  ansible.builtin.command:
+    cmd: syncthing cli config devices list
+  become: true
+  become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
+  register: syncthing_existing_devices
+  changed_when: false
+
 - name: Add peer devices
   ansible.builtin.command:
     cmd: >
@@ -28,12 +38,30 @@
   environment:
     HOME: "/home/{{ syncthing_user }}"
   loop: "{{ ansible_play_hosts_all | difference([inventory_hostname]) }}"
-  when: hostvars[item].syncthing_device_id is defined
-  register: syncthing_device_result
-  changed_when: syncthing_device_result.rc == 0
-  failed_when:
-    - syncthing_device_result.rc != 0
-    - "'already exists' not in syncthing_device_result.stderr"
+  when:
+    - hostvars[item].syncthing_device_id is defined
+    - hostvars[item].syncthing_device_id not in syncthing_existing_devices.stdout
+  changed_when: true
+
+- name: Get existing folder device associations
+  ansible.builtin.command:
+    cmd: syncthing cli config folders {{ item.id }} devices list
+  become: true
+  become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
+  loop: "{{ syncthing_folders }}"
+  register: syncthing_folder_devices
+  changed_when: false
+
+- name: Build folder device map
+  ansible.builtin.set_fact:
+    syncthing_folder_device_map: >-
+      {{ syncthing_folder_device_map | default({})
+         | combine({item.item.id: item.stdout}) }}
+  loop: "{{ syncthing_folder_devices.results }}"
+  loop_control:
+    label: "{{ item.item.id }}"
 
 - name: Share folders with peer devices
   ansible.builtin.command:
@@ -45,10 +73,8 @@
   environment:
     HOME: "/home/{{ syncthing_user }}"
   loop: "{{ syncthing_folders | product(ansible_play_hosts_all | difference([inventory_hostname])) | list }}"
-  when: hostvars[item.1].syncthing_device_id is defined
-  register: syncthing_share_result
-  changed_when: syncthing_share_result.rc == 0
-  failed_when:
-    - syncthing_share_result.rc != 0
-    - "'already exists' not in syncthing_share_result.stderr"
+  when:
+    - hostvars[item.1].syncthing_device_id is defined
+    - hostvars[item.1].syncthing_device_id not in (syncthing_folder_device_map[item.0.id] | default(''))
+  changed_when: true
   notify: Restart syncthing

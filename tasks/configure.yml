@@ -1,6 +1,16 @@
 ---
 # Configure Syncthing daemon settings via CLI
 
+- name: Get current GUI enabled state
+  ansible.builtin.command:
+    cmd: syncthing cli config gui enabled get
+  become: true
+  become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
+  register: syncthing_gui_current
+  changed_when: false
+
 - name: Set GUI enabled/disabled
   ansible.builtin.command:
     cmd: >
@@ -10,8 +20,19 @@
   become_user: "{{ syncthing_user }}"
   environment:
     HOME: "/home/{{ syncthing_user }}"
+  when: syncthing_gui_current.stdout | trim | lower != syncthing_gui_enabled | lower
   changed_when: true
   notify: Restart syncthing
+
+- name: Get current GUI/API listen address
+  ansible.builtin.command:
+    cmd: syncthing cli config gui raw-address get
+  become: true
+  become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
+  register: syncthing_address_current
+  changed_when: false
 
 - name: Set GUI/API listen address
   ansible.builtin.command:
@@ -22,8 +43,20 @@
   become_user: "{{ syncthing_user }}"
   environment:
     HOME: "/home/{{ syncthing_user }}"
+  when: syncthing_address_current.stdout | trim != syncthing_api_address
   changed_when: true
   notify: Restart syncthing
+
+- name: Get current API key
+  ansible.builtin.command:
+    cmd: syncthing cli config gui apikey get
+  become: true
+  become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
+  register: syncthing_apikey_current
+  changed_when: false
+  no_log: true
 
 - name: Set API key
   ansible.builtin.command:
@@ -34,10 +67,22 @@
   become_user: "{{ syncthing_user }}"
   environment:
     HOME: "/home/{{ syncthing_user }}"
+  when:
+    - syncthing_api_key | length > 0
+    - syncthing_apikey_current.stdout | trim != syncthing_api_key
   changed_when: true
-  when: syncthing_api_key | length > 0
   no_log: true
   notify: Restart syncthing
+
+- name: Get existing folder IDs
+  ansible.builtin.command:
+    cmd: syncthing cli config folders list
+  become: true
+  become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
+  register: syncthing_existing_folders
+  changed_when: false
 
 - name: Configure shared folders
   ansible.builtin.command:
@@ -50,8 +95,5 @@
   environment:
     HOME: "/home/{{ syncthing_user }}"
   loop: "{{ syncthing_folders }}"
-  register: syncthing_folder_result
-  changed_when: syncthing_folder_result.rc == 0
-  failed_when:
-    - syncthing_folder_result.rc != 0
-    - "'already exists' not in syncthing_folder_result.stderr"
+  when: item.id not in syncthing_existing_folders.stdout_lines
+  changed_when: true
