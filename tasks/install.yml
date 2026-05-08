@@ -8,7 +8,7 @@
     mode: "0755"
   when:
     - syncthing_install_repo
-    - ansible_os_family == 'Debian'
+    - ansible_facts['os_family'] == 'Debian'
 
 - name: Download Syncthing apt signing key
   ansible.builtin.get_url:
@@ -18,7 +18,7 @@
     force: false
   when:
     - syncthing_install_repo
-    - ansible_os_family == 'Debian'
+    - ansible_facts['os_family'] == 'Debian'
 
 - name: Add Syncthing apt repository
   ansible.builtin.apt_repository:
@@ -27,7 +27,7 @@
     filename: syncthing
   when:
     - syncthing_install_repo
-    - ansible_os_family == 'Debian'
+    - ansible_facts['os_family'] == 'Debian'
 
 - name: Add Syncthing dnf repository
   ansible.builtin.yum_repository:
@@ -39,7 +39,7 @@
     enabled: true
   when:
     - syncthing_install_repo
-    - ansible_os_family == 'RedHat'
+    - ansible_facts['os_family'] == 'RedHat'
 
 - name: Install syncthing package
   ansible.builtin.package:
