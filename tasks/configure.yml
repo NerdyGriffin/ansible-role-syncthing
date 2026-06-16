@@ -74,6 +74,16 @@
   no_log: true
   notify: Restart syncthing
 
+- name: Ensure shared folder paths exist
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ syncthing_user }}"
+    group: "{{ syncthing_user }}"
+    mode: "0755"
+  become: true
+  loop: "{{ syncthing_folders }}"
+
 - name: Get existing folder IDs
   ansible.builtin.command:
     cmd: syncthing cli config folders list
