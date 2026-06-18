@@ -107,3 +107,22 @@
   loop: "{{ syncthing_folders }}"
   when: item.id not in syncthing_existing_folders.stdout_lines
   changed_when: true
+
+# Syncthing never replicates a folder's own .stignore (ignore patterns are
+# per-device local config), so a freshly-paired device starts with no ignores.
+# Seed it from the folder's optional `stignore` value. force: false — create
+# only when absent, never clobber a device's local additions. A common pattern
+# is to point this stub at a synced shared file: `#include .stignore.shared`.
+- name: Seed per-folder .stignore (create only; never overwrite device-local edits)
+  ansible.builtin.copy:
+    dest: "{{ item.path }}/.stignore"
+    content: "{{ item.stignore }}"
+    owner: "{{ syncthing_user }}"
+    group: "{{ syncthing_user }}"
+    mode: "0644"
+    force: false
+  become: true
+  loop: "{{ syncthing_folders }}"
+  loop_control:
+    label: "{{ item.id }}"
+  when: item.stignore is defined

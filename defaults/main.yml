@@ -8,11 +8,17 @@ syncthing_user: setup
 # Whether to add the official Syncthing apt/dnf repo (recommended over distro packages)
 syncthing_install_repo: true
 
-# Shared folders — list of dicts with keys: id, path
+# Shared folders — list of dicts with keys: id, path, and optional stignore.
+#   stignore: literal contents to seed the folder's .stignore with (created
+#   only if absent — Syncthing never syncs .stignore itself, so this gives a
+#   freshly-paired device its ignore patterns). Often an `#include` of a synced
+#   shared file so pattern edits propagate without re-running this role.
 # Example:
 #   syncthing_folders:
 #     - id: ansible
 #       path: /ansible
+#       stignore: |
+#         #include .stignore.shared
 syncthing_folders: []
 
 # API key for the Syncthing REST API (set via vault in production)
