@@ -34,3 +34,11 @@ syncthing_api_address: "127.0.0.1:8384"
 
 # Syncthing listen address for device-to-device sync
 syncthing_listen_address: "default"
+
+# Connection / discovery toggles. Defaults match Syncthing's NATIVE defaults
+# (all enabled) so the role stays a faithful general-purpose role — disable
+# these in group_vars/playbook to harden a LAN-only deployment that must not
+# punch router holes, advertise itself publicly, or relay via public infra.
+syncthing_nat_enabled: true              # UPnP/NAT-PMP automatic router port mapping
+syncthing_global_announce_enabled: true  # announce this device to public discovery servers
+syncthing_relays_enabled: true           # allow connections via public relay servers

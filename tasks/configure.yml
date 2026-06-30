@@ -74,6 +74,78 @@
   no_log: true
   notify: Restart syncthing
 
+# --- Connection / discovery toggles (LAN-only hardening when disabled) ---
+# natenabled = UPnP/NAT-PMP router port mapping; global-ann-enabled = announce
+# to public discovery servers; relays-enabled = connect via public relays.
+- name: Get current NAT/UPnP (natenabled) state
+  ansible.builtin.command:
+    cmd: syncthing cli config options natenabled get
+  become: true
+  become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
+  register: syncthing_nat_current
+  changed_when: false
+
+- name: Set NAT/UPnP (natenabled) state
+  ansible.builtin.command:
+    cmd: >
+      syncthing cli config options natenabled set
+      {{ syncthing_nat_enabled | lower }}
+  become: true
+  become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
+  when: syncthing_nat_current.stdout | trim | lower != syncthing_nat_enabled | lower
+  changed_when: true
+  notify: Restart syncthing
+
+- name: Get current global discovery (global-ann-enabled) state
+  ansible.builtin.command:
+    cmd: syncthing cli config options global-ann-enabled get
+  become: true
+  become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
+  register: syncthing_global_ann_current
+  changed_when: false
+
+- name: Set global discovery (global-ann-enabled) state
+  ansible.builtin.command:
+    cmd: >
+      syncthing cli config options global-ann-enabled set
+      {{ syncthing_global_announce_enabled | lower }}
+  become: true
+  become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
+  when: syncthing_global_ann_current.stdout | trim | lower != syncthing_global_announce_enabled | lower
+  changed_when: true
+  notify: Restart syncthing
+
+- name: Get current relays (relays-enabled) state
+  ansible.builtin.command:
+    cmd: syncthing cli config options relays-enabled get
+  become: true
+  become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
+  register: syncthing_relays_current
+  changed_when: false
+
+- name: Set relays (relays-enabled) state
+  ansible.builtin.command:
+    cmd: >
+      syncthing cli config options relays-enabled set
+      {{ syncthing_relays_enabled | lower }}
+  become: true
+  become_user: "{{ syncthing_user }}"
+  environment:
+    HOME: "/home/{{ syncthing_user }}"
+  when: syncthing_relays_current.stdout | trim | lower != syncthing_relays_enabled | lower
+  changed_when: true
+  notify: Restart syncthing
+
 - name: Ensure shared folder paths exist
   ansible.builtin.file:
     path: "{{ item.path }}"
