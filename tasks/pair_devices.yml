@@ -75,6 +75,11 @@
   loop: "{{ syncthing_folders | product(ansible_play_hosts_all | difference([inventory_hostname])) | list }}"
   when:
     - hostvars[item.1].syncthing_device_id is defined
+    # Only share a folder with a peer that declares the same folder id. Without
+    # this a host offers every folder it holds to every peer, so a peer that
+    # subscribes to a subset gets pending invites for the rest — its narrower
+    # syncthing_folders would be silently overridden by whatever its peers hold.
+    - item.0.id in (hostvars[item.1].syncthing_folders | default([]) | map(attribute='id') | list)
     - hostvars[item.1].syncthing_device_id not in (syncthing_folder_device_map[item.0.id] | default(''))
   changed_when: true
   notify: Restart syncthing
