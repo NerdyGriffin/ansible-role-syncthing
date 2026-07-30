@@ -2,22 +2,22 @@
 # Configure Syncthing daemon settings via CLI
 
 - name: Get current GUI enabled state
-  ansible.builtin.command:
-    cmd: syncthing cli config gui enabled get
   become: true
   become_user: "{{ syncthing_user }}"
+  ansible.builtin.command:
+    cmd: syncthing cli config gui enabled get
   environment:
     HOME: "/home/{{ syncthing_user }}"
   register: syncthing_gui_current
   changed_when: false
 
 - name: Set GUI enabled/disabled
+  become: true
+  become_user: "{{ syncthing_user }}"
   ansible.builtin.command:
     cmd: >
       syncthing cli config gui enabled set
       {{ syncthing_gui_enabled | lower }}
-  become: true
-  become_user: "{{ syncthing_user }}"
   environment:
     HOME: "/home/{{ syncthing_user }}"
   when: syncthing_gui_current.stdout | trim | lower != syncthing_gui_enabled | lower
@@ -25,22 +25,22 @@
   notify: Restart syncthing
 
 - name: Get current GUI/API listen address
-  ansible.builtin.command:
-    cmd: syncthing cli config gui raw-address get
   become: true
   become_user: "{{ syncthing_user }}"
+  ansible.builtin.command:
+    cmd: syncthing cli config gui raw-address get
   environment:
     HOME: "/home/{{ syncthing_user }}"
   register: syncthing_address_current
   changed_when: false
 
 - name: Set GUI/API listen address
+  become: true
+  become_user: "{{ syncthing_user }}"
   ansible.builtin.command:
     cmd: >
       syncthing cli config gui raw-address set
       {{ syncthing_api_address }}
-  become: true
-  become_user: "{{ syncthing_user }}"
   environment:
     HOME: "/home/{{ syncthing_user }}"
   when: syncthing_address_current.stdout | trim != syncthing_api_address
@@ -48,10 +48,10 @@
   notify: Restart syncthing
 
 - name: Get current API key
-  ansible.builtin.command:
-    cmd: syncthing cli config gui apikey get
   become: true
   become_user: "{{ syncthing_user }}"
+  ansible.builtin.command:
+    cmd: syncthing cli config gui apikey get
   environment:
     HOME: "/home/{{ syncthing_user }}"
   register: syncthing_apikey_current
@@ -59,12 +59,12 @@
   no_log: true
 
 - name: Set API key
+  become: true
+  become_user: "{{ syncthing_user }}"
   ansible.builtin.command:
     cmd: >
       syncthing cli config gui apikey set
       {{ syncthing_api_key }}
-  become: true
-  become_user: "{{ syncthing_user }}"
   environment:
     HOME: "/home/{{ syncthing_user }}"
   when:
@@ -78,22 +78,22 @@
 # natenabled = UPnP/NAT-PMP router port mapping; global-ann-enabled = announce
 # to public discovery servers; relays-enabled = connect via public relays.
 - name: Get current NAT/UPnP (natenabled) state
-  ansible.builtin.command:
-    cmd: syncthing cli config options natenabled get
   become: true
   become_user: "{{ syncthing_user }}"
+  ansible.builtin.command:
+    cmd: syncthing cli config options natenabled get
   environment:
     HOME: "/home/{{ syncthing_user }}"
   register: syncthing_nat_current
   changed_when: false
 
 - name: Set NAT/UPnP (natenabled) state
+  become: true
+  become_user: "{{ syncthing_user }}"
   ansible.builtin.command:
     cmd: >
       syncthing cli config options natenabled set
       {{ syncthing_nat_enabled | lower }}
-  become: true
-  become_user: "{{ syncthing_user }}"
   environment:
     HOME: "/home/{{ syncthing_user }}"
   when: syncthing_nat_current.stdout | trim | lower != syncthing_nat_enabled | lower
@@ -101,22 +101,22 @@
   notify: Restart syncthing
 
 - name: Get current global discovery (global-ann-enabled) state
-  ansible.builtin.command:
-    cmd: syncthing cli config options global-ann-enabled get
   become: true
   become_user: "{{ syncthing_user }}"
+  ansible.builtin.command:
+    cmd: syncthing cli config options global-ann-enabled get
   environment:
     HOME: "/home/{{ syncthing_user }}"
   register: syncthing_global_ann_current
   changed_when: false
 
 - name: Set global discovery (global-ann-enabled) state
+  become: true
+  become_user: "{{ syncthing_user }}"
   ansible.builtin.command:
     cmd: >
       syncthing cli config options global-ann-enabled set
       {{ syncthing_global_announce_enabled | lower }}
-  become: true
-  become_user: "{{ syncthing_user }}"
   environment:
     HOME: "/home/{{ syncthing_user }}"
   when: syncthing_global_ann_current.stdout | trim | lower != syncthing_global_announce_enabled | lower
@@ -124,22 +124,22 @@
   notify: Restart syncthing
 
 - name: Get current relays (relays-enabled) state
-  ansible.builtin.command:
-    cmd: syncthing cli config options relays-enabled get
   become: true
   become_user: "{{ syncthing_user }}"
+  ansible.builtin.command:
+    cmd: syncthing cli config options relays-enabled get
   environment:
     HOME: "/home/{{ syncthing_user }}"
   register: syncthing_relays_current
   changed_when: false
 
 - name: Set relays (relays-enabled) state
+  become: true
+  become_user: "{{ syncthing_user }}"
   ansible.builtin.command:
     cmd: >
       syncthing cli config options relays-enabled set
       {{ syncthing_relays_enabled | lower }}
-  become: true
-  become_user: "{{ syncthing_user }}"
   environment:
     HOME: "/home/{{ syncthing_user }}"
   when: syncthing_relays_current.stdout | trim | lower != syncthing_relays_enabled | lower
@@ -147,33 +147,33 @@
   notify: Restart syncthing
 
 - name: Ensure shared folder paths exist
+  become: true
   ansible.builtin.file:
     path: "{{ item.path }}"
     state: directory
     owner: "{{ syncthing_user }}"
     group: "{{ syncthing_user }}"
     mode: "0755"
-  become: true
   loop: "{{ syncthing_folders }}"
 
 - name: Get existing folder IDs
-  ansible.builtin.command:
-    cmd: syncthing cli config folders list
   become: true
   become_user: "{{ syncthing_user }}"
+  ansible.builtin.command:
+    cmd: syncthing cli config folders list
   environment:
     HOME: "/home/{{ syncthing_user }}"
   register: syncthing_existing_folders
   changed_when: false
 
 - name: Configure shared folders
+  become: true
+  become_user: "{{ syncthing_user }}"
   ansible.builtin.command:
     cmd: >
       syncthing cli config folders add
       --id {{ item.id }}
       --path {{ item.path }}
-  become: true
-  become_user: "{{ syncthing_user }}"
   environment:
     HOME: "/home/{{ syncthing_user }}"
   loop: "{{ syncthing_folders }}"
@@ -186,6 +186,7 @@
 # only when absent, never clobber a device's local additions. A common pattern
 # is to point this stub at a synced shared file: `#include .stignore.shared`.
 - name: Seed per-folder .stignore (create only; never overwrite device-local edits)
+  become: true
   ansible.builtin.copy:
     dest: "{{ item.path }}/.stignore"
     content: "{{ item.stignore }}"
@@ -193,7 +194,6 @@
     group: "{{ syncthing_user }}"
     mode: "0644"
     force: false
-  become: true
   loop: "{{ syncthing_folders }}"
   loop_control:
     label: "{{ item.id }}"

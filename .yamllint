@@ -1,0 +1,23 @@
+---
+extends: default
+
+# Vendored subtree — see exclude_paths in .ansible-lint for why it is not ours
+# to lint or reformat.
+ignore: |
+  .ansible-lint-rules/
+
+rules:
+  line-length:
+    max: 160
+    level: warning
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: false
+  braces:
+    max-spaces-inside: 1
+  octal-values:
+    forbid-implicit-octal: true
+    forbid-explicit-octal: true
+  truthy:
+    allowed-values: ["true", "false"]
+    check-keys: false

@@ -54,8 +54,8 @@
     daemon_reload: true
 
 - name: Wait for Syncthing to generate initial config
+  become: true
+  become_user: "{{ syncthing_user }}"
   ansible.builtin.wait_for:
     path: "/home/{{ syncthing_user }}/.local/state/syncthing/config.xml"
     timeout: 30
-  become: true
-  become_user: "{{ syncthing_user }}"

@@ -3,10 +3,10 @@
 
 # Pass 1: Collect this host's device ID
 - name: Get local Syncthing device ID
-  ansible.builtin.command:
-    cmd: syncthing cli show system
   become: true
   become_user: "{{ syncthing_user }}"
+  ansible.builtin.command:
+    cmd: syncthing cli show system
   environment:
     HOME: "/home/{{ syncthing_user }}"
   register: syncthing_system_info
@@ -18,23 +18,23 @@
 
 # Pass 2: Register all peer devices
 - name: Get existing device IDs
-  ansible.builtin.command:
-    cmd: syncthing cli config devices list
   become: true
   become_user: "{{ syncthing_user }}"
+  ansible.builtin.command:
+    cmd: syncthing cli config devices list
   environment:
     HOME: "/home/{{ syncthing_user }}"
   register: syncthing_existing_devices
   changed_when: false
 
 - name: Add peer devices
+  become: true
+  become_user: "{{ syncthing_user }}"
   ansible.builtin.command:
     cmd: >
       syncthing cli config devices add
       --device-id {{ hostvars[item].syncthing_device_id }}
       --name {{ item }}
-  become: true
-  become_user: "{{ syncthing_user }}"
   environment:
     HOME: "/home/{{ syncthing_user }}"
   loop: "{{ ansible_play_hosts_all | difference([inventory_hostname]) }}"
@@ -44,10 +44,10 @@
   changed_when: true
 
 - name: Get existing folder device associations
-  ansible.builtin.command:
-    cmd: syncthing cli config folders {{ item.id }} devices list
   become: true
   become_user: "{{ syncthing_user }}"
+  ansible.builtin.command:
+    cmd: syncthing cli config folders {{ item.id }} devices list
   environment:
     HOME: "/home/{{ syncthing_user }}"
   loop: "{{ syncthing_folders }}"
@@ -64,12 +64,12 @@
     label: "{{ item.item.id }}"
 
 - name: Share folders with peer devices
+  become: true
+  become_user: "{{ syncthing_user }}"
   ansible.builtin.command:
     cmd: >
       syncthing cli config folders {{ item.0.id }} devices add
       --device-id {{ hostvars[item.1].syncthing_device_id }}
-  become: true
-  become_user: "{{ syncthing_user }}"
   environment:
     HOME: "/home/{{ syncthing_user }}"
   loop: "{{ syncthing_folders | product(ansible_play_hosts_all | difference([inventory_hostname])) | list }}"

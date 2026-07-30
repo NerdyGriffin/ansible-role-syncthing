@@ -1,5 +1,7 @@
 ---
 galaxy_info:
+  role_name: syncthing
+  namespace: nerdygriffin
   author: nerdygriffin
   description: Install and configure Syncthing with automated device pairing
   license: MIT
