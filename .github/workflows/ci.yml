@@ -19,7 +19,7 @@ jobs:
         working-directory: 'nerdygriffin.syncthing'
     steps:
       - name: Check out the codebase.
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           path: 'nerdygriffin.syncthing'
 
